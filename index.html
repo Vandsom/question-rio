@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Simulado PRO - Prof. Informática</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { 900: '#121214', 800: '#202024', 700: '#29292e' },
+                        brand: { 500: '#8b5cf6', 600: '#7c3aed' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #121214; }
+        ::-webkit-scrollbar-thumb { background: #29292e; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
+        
+        .radio-custom:checked + div {
+            border-color: #8b5cf6;
+            background-color: rgba(139, 92, 246, 0.1);
+        }
+        
+        .loader {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-bottom-color: #8b5cf6;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-dark-900 text-gray-900 dark:text-gray-100 font-sans antialiased h-screen flex flex-col overflow-hidden">
+
+    <nav class="bg-white dark:bg-dark-800 border-b border-gray-200 dark:border-dark-700 p-4 shrink-0 shadow-sm z-10 relative">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i class="ph-fill ph-student text-brand-500 text-3xl"></i>
+                <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-500 to-blue-500">Simulado PRO</h1>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="switchTab('setup')" id="nav-setup" class="text-brand-500 font-semibold hover:text-brand-600 transition-colors hidden sm:block">Configurar</button>
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="text-gray-500 dark:text-gray-400 hover:text-brand-500 transition-colors hidden sm:block">Dashboard</button>
+                <button onclick="toggleTheme()" class="p-2 rounded-lg bg-gray-100 dark:bg-dark-700 text-gray-600 dark:text-gray-300">
+                    <i class="ph ph-moon" id="theme-icon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-1 overflow-y-auto relative w-full" id="main-content">
+        <div class="max-w-4xl mx-auto p-4 sm:p-6 pb-24 sm:pb-6">
+            
+            <div id="setup-screen" class="space-y-6">
+                <div class="bg-white dark:bg-dark-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-dark-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <h2 class="text-2xl font-bold">Edital Canto do Buriti (IVIN)</h2>
+                        <span class="bg-brand-500/10 text-brand-500 text-xs font-bold px-2 py-1 rounded">Cód. 39</span>
+                    </div>
+                    <p class="text-gray-500 dark:text-gray-400 mb-6 text-sm">Os tópicos abaixo foram extraídos do edital Nº 001/2026 para o cargo de Professor de Informática.</p>
+                    
+                    <div class="space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 dark:bg-dark-900 p-4 rounded-xl border border-gray-200 dark:border-dark-700 hidden">
+                            <input type="hidden" id="banca" value="Instituto Vicente Nelson (IVIN)">
+                            <input type="hidden" id="cargo" value="Professor de Informática">
+                        </div>
+
+                        <div id="topics-section" class="space-y-4">
+                            <h3 class="text-sm font-semibold text-brand-500 flex items-center gap-2">
+                                <i class="ph-fill ph-check-circle"></i> Assuntos do Conteúdo Programático:
+                            </h3>
+                            <div id="topics-container" class="flex flex-wrap gap-2 bg-gray-50 dark:bg-dark-900 p-4 rounded-xl border border-gray-200 dark:border-dark-700 max-h-60 overflow-y-auto">
+                                <label class="cursor-pointer relative"><input type="checkbox" class="peer sr-only topic-checkbox" value="Língua Portuguesa: Interpretação de texto, Morfologia e Sintaxe, Crase, Pontuação" checked><div class="px-3 py-1.5 rounded-full border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800 text-sm font-medium text-gray-600 dark:text-gray-300 peer-checked:bg-brand-500 peer-checked:text-white peer-checked:border-brand-500 transition-all select-none">Língua Portuguesa</div></label>
+                                
+                                <label class="cursor-pointer relative"><input type="checkbox" class="peer sr-only topic-checkbox" value="Informática Básica: Hardware, Windows, Word, Excel, Internet" checked><div class="px-3 py-1.5 rounded-full border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800 text-sm font-medium text-gray-600 dark:text-gray-300 peer-checked:bg-brand-500 peer-checked:text-white peer-checked:border-brand-500 transition-all select-none">Informática Básica</div></label>
+
+                                <label class="cursor-pointer relative"><input type="checkbox" class="peer sr-only topic-checkbox" value="Conhecimentos Específicos: Windows 10, Office, Nuvem, Teams, Segurança da Informação" checked><div class="px-3 py-1.5 rounded-full border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800 text-sm font-medium text-gray-600 dark:text-gray-300 peer-checked:bg-brand-500 peer-checked:text-white peer-checked:border-brand-500 transition-all select-none">Específicos: Tecnologia</div></label>
+
+                                <label class="cursor-pointer relative"><input type="checkbox" class="peer sr-only topic-checkbox" value="Conhecimentos Específicos: LDB 9.394/96, ECA, BNCC, Educação Inclusiva, Didática Geral" checked><div class="px-3 py-1.5 rounded-full border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800 text-sm font-medium text-gray-600 dark:text-gray-300 peer-checked:bg-brand-500 peer-checked:text-white peer-checked:border-brand-500 transition-all select-none">Específicos: Legislação & Didática</div></label>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4 pt-2">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Qtd. Questões</label>
+                                    <input type="number" id="quantidade" value="10" min="1" max="40" class="w-full bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Tempo (minutos)</label>
+                                    <input type="number" id="tempo" value="60" min="5" class="w-full bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                                </div>
+                            </div>
+                            
+                            <button onclick="startSimulation()" id="btn-start" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold p-4 rounded-xl transition-all shadow-lg shadow-brand-500/30 flex items-center justify-center gap-2 mt-4">
+                                <i class="ph-fill ph-play-circle text-xl"></i>
+                                <span>Gerar Simulado</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-dark-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-dark-700">
+                    <h3 class="font-bold flex items-center gap-2 mb-4"><i class="ph-fill ph-target text-red-500"></i> Meta Diária</h3>
+                    <div class="flex justify-between items-end mb-2">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Questões resolvidas hoje</span>
+                        <span class="font-bold text-xl" id="meta-text">0 / 40</span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-dark-700 rounded-full h-2.5">
+                        <div class="bg-gradient-to-r from-red-500 to-brand-500 h-2.5 rounded-full transition-all duration-500" id="meta-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="quiz-screen" class="hidden flex-col h-full">
+                <div class="sticky top-0 bg-white dark:bg-dark-800 p-4 border-b border-gray-200 dark:border-dark-700 flex justify-between items-center gap-4 shadow-sm z-10 -mx-4 sm:-mx-6 px-4 sm:px-6 mb-6">
+                    <div class="flex-1 min-w-0">
+                        <h2 id="quiz-title" class="text-base sm:text-lg font-bold line-clamp-2 leading-tight" title="Simulado">Simulado</h2>
+                        <span id="quiz-banca" class="text-xs text-brand-500 font-medium truncate block">Banca</span>
+                    </div>
+                    <div class="flex items-center gap-2 bg-gray-100 dark:bg-dark-700 px-3 py-1.5 rounded-lg shrink-0">
+                        <i class="ph ph-clock text-brand-500"></i>
+                        <span id="timer" class="font-mono font-bold text-lg">00:00</span>
+                    </div>
+                </div>
+
+                <div class="flex-1 bg-white dark:bg-dark-800 rounded-2xl p-5 sm:p-8 shadow-lg border border-gray-100 dark:border-dark-700 mb-6 relative">
+                    <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400 mb-6 font-medium">
+                        <span id="question-counter">Questão 1 de 10</span>
+                        <span id="question-subject" class="bg-gray-100 dark:bg-dark-700 px-2 py-1 rounded">Assunto</span>
+                    </div>
+
+                    <div id="question-text" class="text-lg leading-relaxed mb-6 font-medium">
+                        Carregando questão...
+                    </div>
+                    
+                    <div id="question-image-container" class="mb-6 hidden">
+                        <img id="question-image" src="" alt="Imagem da questão" class="max-w-full h-auto rounded-lg border border-gray-200 dark:border-dark-700 mx-auto">
+                    </div>
+
+                    <div id="options-container" class="space-y-3">
+                    </div>
+
+                    <div id="feedback-container" class="hidden mt-6 p-4 rounded-xl text-sm border">
+                        <div class="flex items-center gap-2 font-bold text-base mb-2" id="feedback-title"></div>
+                        <p id="feedback-justification" class="leading-relaxed"></p>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center gap-4">
+                    <button onclick="quitQuiz()" class="text-red-500 font-medium px-4 py-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors text-sm">
+                        Encerrar Simulado
+                    </button>
+                    <button onclick="nextQuestion()" id="btn-next" class="hidden bg-brand-600 hover:bg-brand-500 text-white font-bold px-8 py-3 rounded-xl transition-all shadow-lg flex items-center gap-2">
+                        Próxima <i class="ph-bold ph-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="dashboard-screen" class="hidden space-y-6">
+                <div class="bg-white dark:bg-dark-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-dark-700">
+                    <h2 class="text-2xl font-bold mb-6">Seu Desempenho</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                        <div class="bg-gray-50 dark:bg-dark-900 p-4 rounded-xl border border-gray-200 dark:border-dark-700 text-center">
+                            <div class="text-3xl font-bold text-brand-500" id="stat-total">0</div>
+                            <div class="text-xs text-gray-500 mt-1 uppercase tracking-wider font-semibold">Total Feitas</div>
+                        </div>
+                        <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border border-green-100 dark:border-green-900/30 text-center">
+                            <div class="text-3xl font-bold text-green-500" id="stat-acertos">0</div>
+                            <div class="text-xs text-green-600 dark:text-green-400 mt-1 uppercase tracking-wider font-semibold">Acertos</div>
+                        </div>
+                        <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-100 dark:border-red-900/30 text-center">
+                            <div class="text-3xl font-bold text-red-500" id="stat-erros">0</div>
+                            <div class="text-xs text-red-600 dark:text-red-400 mt-1 uppercase tracking-wider font-semibold">Erros</div>
+                        </div>
+                        <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30 text-center">
+                            <div class="text-3xl font-bold text-blue-500" id="stat-taxa">0%</div>
+                            <div class="text-xs text-blue-600 dark:text-blue-400 mt-1 uppercase tracking-wider font-semibold">Taxa Acerto</div>
+                        </div>
+                    </div>
+                    <div class="w-full h-64">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div class="sm:hidden fixed bottom-0 w-full bg-white dark:bg-dark-800 border-t border-gray-200 dark:border-dark-700 pb-safe z-50">
+        <div class="flex justify-around items-center h-16">
+            <button onclick="switchTab('setup')" id="mob-nav-setup" class="flex flex-col items-center justify-center w-full h-full text-brand-500">
+                <i class="ph-fill ph-gear text-2xl mb-1"></i>
+                <span class="text-[10px] font-medium">Configurar</span>
+            </button>
+            <button onclick="switchTab('dashboard')" id="mob-nav-dashboard" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-brand-500 transition-colors">
+                <i class="ph-fill ph-chart-line-up text-2xl mb-1"></i>
+                <span class="text-[10px] font-medium">Dashboard</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed top-4 right-4 bg-dark-800 text-white px-6 py-4 rounded-xl shadow-2xl transform transition-all duration-300 translate-x-full opacity-0 z-50 border border-dark-700 flex items-center gap-3">
+        <i id="toast-icon" class="ph-fill text-xl"></i>
+        <span id="toast-msg" class="font-medium text-sm"></span>
+    </div>
+
+    <div id="loading-overlay" class="fixed inset-0 bg-white/90 dark:bg-dark-900/90 backdrop-blur-sm z-50 hidden flex-col items-center justify-center">
+        <div class="loader w-12 h-12 mb-4"></div>
+        <h3 class="text-xl font-bold text-brand-500" id="loading-title">Gerando Simulado...</h3>
+        <p class="text-gray-500 dark:text-gray-400 text-sm mt-2 max-w-xs text-center" id="loading-desc">Buscando questões reais no Google e formatando para você.</p>
+    </div>
+
+    <script>
+        let currentQuestions = [];
+        let currentIndex = 0;
+        let timerInterval;
+        let timeRemaining = 0;
+        let stats = JSON.parse(localStorage.getItem('simuladoStats')) || {
+            total: 0, acertos: 0, erros: 0, bySubject: {}, questoesHoje: 0, ultimaData: new Date().toDateString()
+        };
+        let myChart = null;
+
+        if(stats.ultimaData !== new Date().toDateString()) {
+            stats.questoesHoje = 0;
+            stats.ultimaData = new Date().toDateString();
+            saveStats();
+        }
+
+        window.onload = () => {
+            initTheme();
+            updateStatsUI();
+            localStorage.removeItem('geminiApiKey');
+        };
+
+        function initTheme() {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-icon').classList.replace('ph-moon', 'ph-sun');
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('theme-icon').classList.replace('ph-sun', 'ph-moon');
+            }
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.theme = 'light';
+                icon.classList.replace('ph-sun', 'ph-moon');
+            } else {
+                html.classList.add('dark');
+                localStorage.theme = 'dark';
+                icon.classList.replace('ph-sun', 'ph-sun');
+            }
+            if(myChart) renderChart();
+        }
+
+        function switchTab(tab) {
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            
+            document.getElementById(`${tab}-screen`).classList.remove('hidden');
+            document.getElementById(`${tab}-screen`).classList.add('flex');
+
+            document.getElementById('nav-setup').className = tab === 'setup' ? 'text-brand-500 font-semibold hidden sm:block' : 'text-gray-500 hover:text-brand-500 transition-colors hidden sm:block';
+            document.getElementById('nav-dashboard').className = tab === 'dashboard' ? 'text-brand-500 font-semibold hidden sm:block' : 'text-gray-500 hover:text-brand-500 transition-colors hidden sm:block';
+            
+            document.getElementById('mob-nav-setup').className = tab === 'setup' ? 'flex flex-col items-center justify-center w-full h-full text-brand-500' : 'flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-brand-500';
+            document.getElementById('mob-nav-dashboard').className = tab === 'dashboard' ? 'flex flex-col items-center justify-center w-full h-full text-brand-500' : 'flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-brand-500';
+
+            if(tab === 'dashboard') renderChart();
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-msg').innerText = message;
+            
+            toast.className = `fixed top-4 right-4 px-6 py-4 rounded-xl shadow-2xl transform transition-all duration-300 z-[60] border flex items-center gap-3`;
+            
+            if(type === 'error') {
+                toast.classList.add('bg-red-900', 'text-white', 'border-red-700');
+                icon.className = 'ph-fill ph-warning-circle text-xl text-red-400';
+            } else if (type === 'success') {
+                toast.classList.add('bg-green-900', 'text-white', 'border-green-700');
+                icon.className = 'ph-fill ph-check-circle text-xl text-green-400';
+            } else {
+                toast.classList.add('bg-dark-800', 'text-white', 'border-dark-700');
+                icon.className = 'ph-fill ph-info text-xl text-brand-400';
+            }
+
+            toast.classList.remove('translate-x-full', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+            }, 4000);
+        }
+
+        function showLoading(show, title = "Processando...", desc = "") {
+            const overlay = document.getElementById('loading-overlay');
+            document.getElementById('loading-title').innerText = title;
+            document.getElementById('loading-desc').innerText = desc;
+            if(show) {
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+            } else {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }
+        }
+
+        async function startSimulation() {
+            const banca = document.getElementById('banca').value;
+            const cargo = document.getElementById('cargo').value.trim();
+            const quantidade = Number(document.getElementById('quantidade').value);
+            const tempoInput = document.getElementById('tempo').value;
+            
+            const checkboxes = document.querySelectorAll('.topic-checkbox:checked');
+            const selectedTopics = Array.from(checkboxes).map(cb => cb.value);
+
+            if (selectedTopics.length === 0) return showToast("Selecione pelo menos um tópico para o simulado.", "error");
+            if (!Number.isInteger(quantidade) || quantidade < 1 || quantidade > 40) {
+                return showToast("Informe uma quantidade de questões entre 1 e 40.", "error");
+            }
+
+            showLoading(true, "A montar Simulado...", "A procurar questões aderentes ao edital da Prefeitura de Canto do Buriti e IVIN.");
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ selectedTopics, quantidade })
+                });
+
+                const responseText = await response.text();
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch {
+                    throw new Error("A API não respondeu em JSON. Inicie o projeto com `vercel dev` em vez do Live Server, ou abra o endereço publicado na Vercel.");
+                }
+
+                if (!response.ok) throw new Error(data.error || "Não foi possível gerar o simulado.");
+
+                currentQuestions = data.questions;
+                if(!Array.isArray(currentQuestions) || currentQuestions.length === 0) throw new Error("Formato inválido retornado pela IA.");
+
+                currentIndex = 0;
+                timeRemaining = parseInt(tempoInput) * 60;
+                
+                document.getElementById('quiz-title').innerText = `Simulado: ${cargo}`;
+                document.getElementById('quiz-banca').innerText = banca;
+                
+                switchTab('quiz');
+                renderQuestion();
+                startTimer();
+
+            } catch (error) {
+                const message = error instanceof TypeError
+                    ? "Não foi possível conectar à API. Inicie o projeto com `vercel dev` ou abra o endereço publicado na Vercel."
+                    : error.message;
+                showToast("Erro ao gerar simulado: " + message, "error");
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function renderQuestion() {
+            const q = currentQuestions[currentIndex];
+            document.getElementById('question-counter').innerText = `Questão ${currentIndex + 1} de ${currentQuestions.length}`;
+            document.getElementById('question-subject').innerText = q.assunto;
+            document.getElementById('question-text').innerHTML = q.enunciado.replace(/\n/g, '<br>');
+            
+            const imgContainer = document.getElementById('question-image-container');
+            const imgEl = document.getElementById('question-image');
+            if(q.image && q.image.startsWith('http')) {
+                imgEl.src = q.image;
+                imgContainer.classList.remove('hidden');
+            } else {
+                imgContainer.classList.add('hidden');
+            }
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            q.opcoes.forEach(opt => {
+                optionsContainer.innerHTML += `
+                    <label class="block relative cursor-pointer group">
+                        <input type="radio" name="questionOption" value="${opt.id}" class="peer sr-only radio-custom" onchange="handleAnswer('${opt.id}')">
+                        <div class="p-4 rounded-xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 text-gray-700 dark:text-gray-300 peer-checked:border-brand-500 peer-checked:bg-brand-500/10 hover:border-brand-400 transition-all flex gap-3">
+                            <span class="font-bold text-gray-400 uppercase mt-0.5">${opt.id})</span>
+                            <span class="flex-1">${opt.texto}</span>
+                        </div>
+                    </label>
+                `;
+            });
+
+            document.getElementById('feedback-container').classList.add('hidden');
+            const btnNext = document.getElementById('btn-next');
+            btnNext.classList.add('hidden');
+            if(currentIndex === currentQuestions.length - 1) {
+                btnNext.innerHTML = 'Finalizar <i class="ph-bold ph-check"></i>';
+                btnNext.classList.replace('bg-brand-600', 'bg-green-600');
+                btnNext.classList.replace('hover:bg-brand-500', 'hover:bg-green-500');
+            } else {
+                btnNext.innerHTML = 'Próxima <i class="ph-bold ph-arrow-right"></i>';
+                btnNext.classList.replace('bg-green-600', 'bg-brand-600');
+                btnNext.classList.replace('hover:bg-green-500', 'hover:bg-brand-500');
+            }
+        }
+
+        function handleAnswer(selectedId) {
+            const q = currentQuestions[currentIndex];
+            const isCorrect = selectedId === q.resposta_correta;
+            
+            document.querySelectorAll('input[name="questionOption"]').forEach(r => r.disabled = true);
+            
+            stats.total++;
+            stats.questoesHoje++;
+            if(!stats.bySubject[q.assunto]) stats.bySubject[q.assunto] = { acertos: 0, erros: 0 };
+
+            const feedbackContainer = document.getElementById('feedback-container');
+            const feedbackTitle = document.getElementById('feedback-title');
+            
+            feedbackContainer.classList.remove('hidden', 'bg-green-50', 'border-green-200', 'text-green-900', 'bg-red-50', 'border-red-200', 'text-red-900', 'dark:bg-green-900/20', 'dark:border-green-900', 'dark:text-green-100', 'dark:bg-red-900/20', 'dark:border-red-900', 'dark:text-red-100');
+            
+            if (isCorrect) {
+                stats.acertos++;
+                stats.bySubject[q.assunto].acertos++;
+                feedbackContainer.classList.add('bg-green-50', 'border-green-200', 'text-green-900', 'dark:bg-green-900/20', 'dark:border-green-900', 'dark:text-green-100');
+                feedbackTitle.innerHTML = '<i class="ph-fill ph-check-circle text-green-500 text-xl"></i> Resposta Correta!';
+            } else {
+                stats.erros++;
+                stats.bySubject[q.assunto].erros++;
+                feedbackContainer.classList.add('bg-red-50', 'border-red-200', 'text-red-900', 'dark:bg-red-900/20', 'dark:border-red-900', 'dark:text-red-100');
+                feedbackTitle.innerHTML = `<i class="ph-fill ph-x-circle text-red-500 text-xl"></i> Resposta Incorreta. Gabarito: ${q.resposta_correta.toUpperCase()}.`;
+            }
+            
+            document.getElementById('feedback-justification').innerText = q.justificativa;
+            document.getElementById('btn-next').classList.remove('hidden');
+            saveStats();
+            updateStatsUI();
+        }
+
+        function nextQuestion() {
+            if (currentIndex < currentQuestions.length - 1) {
+                currentIndex++;
+                renderQuestion();
+                document.getElementById('main-content').scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                quitQuiz(true);
+            }
+        }
+
+        function quitQuiz(finished = false) {
+            clearInterval(timerInterval);
+            if(finished) {
+                showToast("Simulado finalizado!", "success");
+                switchTab('dashboard');
+            } else {
+                if(confirm("Deseja encerrar o simulado?")) switchTab('setup');
+                else startTimer();
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+                if (timeRemaining === 300) showToast("Faltam 5 minutos!", "error");
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    showToast("Tempo esgotado!", "error");
+                    document.querySelectorAll('input[name="questionOption"]').forEach(r => r.disabled = true);
+                    document.getElementById('btn-next').classList.remove('hidden');
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(Math.abs(timeRemaining) / 60).toString().padStart(2, '0');
+            const s = (Math.abs(timeRemaining) % 60).toString().padStart(2, '0');
+            document.getElementById('timer').innerText = `${timeRemaining < 0 ? '-' : ''}${m}:${s}`;
+        }
+
+        function saveStats() { localStorage.setItem('simuladoStats', JSON.stringify(stats)); }
+        function updateStatsUI() {
+            document.getElementById('meta-text').innerText = `${stats.questoesHoje} / 40`;
+            document.getElementById('meta-progress').style.width = `${Math.min((stats.questoesHoje / 40) * 100, 100)}%`;
+        }
+
+        function renderChart() {
+            document.getElementById('stat-total').innerText = stats.total;
+            document.getElementById('stat-acertos').innerText = stats.acertos;
+            document.getElementById('stat-erros').innerText = stats.erros;
+            document.getElementById('stat-taxa').innerText = `${stats.total > 0 ? ((stats.acertos / stats.total) * 100).toFixed(1) : 0}%`;
+
+            const subjects = Object.keys(stats.bySubject);
+            const acertosData = subjects.map(s => stats.bySubject[s].acertos);
+            const errosData = subjects.map(s => stats.bySubject[s].erros);
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#9ca3af' : '#4b5563';
+            const gridColor = isDark ? '#374151' : '#e5e7eb';
+
+            if (myChart) myChart.destroy();
+            myChart = new Chart(document.getElementById('performanceChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: subjects.length > 0 ? subjects.map(s => s.length > 15 ? s.substring(0,15)+'...' : s) : ['Sem dados'],
+                    datasets: [
+                        { label: 'Acertos', data: subjects.length > 0 ? acertosData : [0], backgroundColor: '#22c55e', borderRadius: 4 },
+                        { label: 'Erros', data: subjects.length > 0 ? errosData : [0], backgroundColor: '#ef4444', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: textColor } } },
+                    scales: {
+                        x: { stacked: true, ticks: { color: textColor }, grid: { display: false } },
+                        y: { stacked: true, ticks: { color: textColor }, grid: { color: gridColor } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
