@@ -72,6 +72,11 @@
                     <p class="text-gray-500 dark:text-gray-400 mb-6 text-sm">Os tópicos abaixo foram extraídos do edital Nº 001/2026 para o cargo de Professor de Informática.</p>
                     
                     <div class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-medium mb-1"AQ.Ab8RN6Lw6XdSskOlJ3lGbfmI409XS__BUmtl2ic0NMc15s2AmQ</label>
+                            <input type="password" id="api-key" placeholder="Cole sua API Key do Google AI Studio aqui..." class="w-full bg-gray-50 dark:bg-dark-900 border border-gray-200 dark:border-dark-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all">
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 dark:bg-dark-900 p-4 rounded-xl border border-gray-200 dark:border-dark-700 hidden">
                             <input type="hidden" id="banca" value="Instituto Vicente Nelson (IVIN)">
                             <input type="hidden" id="cargo" value="Professor de Informática">
@@ -141,7 +146,7 @@
                     </div>
 
                     <div id="question-text" class="text-lg leading-relaxed mb-6 font-medium">
-                        Carregando questão...
+                        A carregar questão...
                     </div>
                     
                     <div id="question-image-container" class="mb-6 hidden">
@@ -217,8 +222,8 @@
 
     <div id="loading-overlay" class="fixed inset-0 bg-white/90 dark:bg-dark-900/90 backdrop-blur-sm z-50 hidden flex-col items-center justify-center">
         <div class="loader w-12 h-12 mb-4"></div>
-        <h3 class="text-xl font-bold text-brand-500" id="loading-title">Gerando Simulado...</h3>
-        <p class="text-gray-500 dark:text-gray-400 text-sm mt-2 max-w-xs text-center" id="loading-desc">Buscando questões reais no Google e formatando para você.</p>
+        <h3 class="text-xl font-bold text-brand-500" id="loading-title">A gerar Simulado...</h3>
+        <p class="text-gray-500 dark:text-gray-400 text-sm mt-2 max-w-xs text-center" id="loading-desc">A procurar questões reais no Google e a formatar para si.</p>
     </div>
 
     <script>
@@ -240,7 +245,8 @@
         window.onload = () => {
             initTheme();
             updateStatsUI();
-            localStorage.removeItem('geminiApiKey');
+            const savedKey = localStorage.getItem('geminiApiKey');
+            if(savedKey) document.getElementById('api-key').value = savedKey;
         };
 
         function initTheme() {
@@ -263,7 +269,7 @@
             } else {
                 html.classList.add('dark');
                 localStorage.theme = 'dark';
-                icon.classList.replace('ph-sun', 'ph-sun');
+                icon.classList.replace('ph-moon', 'ph-sun');
             }
             if(myChart) renderChart();
         }
@@ -310,7 +316,7 @@
             }, 4000);
         }
 
-        function showLoading(show, title = "Processando...", desc = "") {
+        function showLoading(show, title = "A processar...", desc = "") {
             const overlay = document.getElementById('loading-overlay');
             document.getElementById('loading-title').innerText = title;
             document.getElementById('loading-desc').innerText = desc;
@@ -324,39 +330,62 @@
         }
 
         async function startSimulation() {
+            const apiKey = document.getElementById('api-key').value.trim();
             const banca = document.getElementById('banca').value;
             const cargo = document.getElementById('cargo').value.trim();
-            const quantidade = Number(document.getElementById('quantidade').value);
+            const quantidade = document.getElementById('quantidade').value;
             const tempoInput = document.getElementById('tempo').value;
             
             const checkboxes = document.querySelectorAll('.topic-checkbox:checked');
             const selectedTopics = Array.from(checkboxes).map(cb => cb.value);
 
+            if (!apiKey) return showToast("Por favor, insira a sua chave da API do Gemini no campo acima.", "error");
             if (selectedTopics.length === 0) return showToast("Selecione pelo menos um tópico para o simulado.", "error");
-            if (!Number.isInteger(quantidade) || quantidade < 1 || quantidade > 40) {
-                return showToast("Informe uma quantidade de questões entre 1 e 40.", "error");
-            }
 
+            localStorage.setItem('geminiApiKey', apiKey);
             showLoading(true, "A montar Simulado...", "A procurar questões aderentes ao edital da Prefeitura de Canto do Buriti e IVIN.");
 
+            const prompt = `Você é um gerador de simulados de concursos públicos focado na banca ${banca}.
+Sua tarefa é usar o Google Search para encontrar QUESTÕES REAIS focadas nestes temas exatos do edital: ${selectedTopics.join(', ')}.
+Gere exatamente ${quantidade} questões mesclando os assuntos escolhidos.
+Formato DEVE ser estritamente JSON puro:
+[
+  {
+    "id": 1,
+    "banca": "${banca} - Nome do Órgão (Ano)",
+    "assunto": "Tema da Questão",
+    "enunciado": "Texto completo...",
+    "image": "url_opcional_ou_null",
+    "opcoes": [
+      {"id": "a", "texto": "Alternativa A"},
+      {"id": "b", "texto": "Alternativa B"},
+      {"id": "c", "texto": "Alternativa C"},
+      {"id": "d", "texto": "Alternativa D"},
+      {"id": "e", "texto": "Alternativa E"}
+    ],
+    "resposta_correta": "a",
+    "justificativa": "Explicação do gabarito."
+  }
+]`;
+
             try {
-                const response = await fetch('/api/generate', {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ selectedTopics, quantidade })
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        tools: [{ googleSearch: {} }],
+                        generationConfig: { temperature: 0.2 }
+                    })
                 });
 
-                const responseText = await response.text();
-                let data;
-                try {
-                    data = JSON.parse(responseText);
-                } catch {
-                    throw new Error("A API não respondeu em JSON. Inicie o projeto com `vercel dev` em vez do Live Server, ou abra o endereço publicado na Vercel.");
-                }
+                const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
 
-                if (!response.ok) throw new Error(data.error || "Não foi possível gerar o simulado.");
-
-                currentQuestions = data.questions;
+                let rawText = data.candidates[0].content.parts[0].text;
+                rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+                
+                currentQuestions = JSON.parse(rawText);
                 if(!Array.isArray(currentQuestions) || currentQuestions.length === 0) throw new Error("Formato inválido retornado pela IA.");
 
                 currentIndex = 0;
@@ -370,10 +399,7 @@
                 startTimer();
 
             } catch (error) {
-                const message = error instanceof TypeError
-                    ? "Não foi possível conectar à API. Inicie o projeto com `vercel dev` ou abra o endereço publicado na Vercel."
-                    : error.message;
-                showToast("Erro ao gerar simulado: " + message, "error");
+                showToast("Erro ao gerar simulado: " + error.message, "error");
             } finally {
                 showLoading(false);
             }
